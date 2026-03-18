@@ -95,7 +95,7 @@ def main():
         "top.jpg",
         "bottom.jpg"
     ]
-    texture_ids = [load_texture(f) for f in texture_files]
+    texture_ids = [load_texture(f) for f in texture_files] # Load all textures using list comprehension
 
     clock = pygame.time.Clock()
     running = True

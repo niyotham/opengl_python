@@ -19,7 +19,7 @@ while True:
             quit()
     
     # Set background color to blue (R=0, G=0, B=0.5, A=1)
-    glClearColor(0.0, 0.0, 0.5, 1.0)
+    glClearColor(0.0, 0.0, 0.5, 0.1)
     glClear(GL_COLOR_BUFFER_BIT)
     
     # Update the display

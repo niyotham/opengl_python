@@ -97,7 +97,7 @@ def load_texture():
     global texture_id
 
     # Load image using Pillow
-    image = Image.open("rachel_image.jpg")  # Make sure this file exists
+    image = Image.open("bottom.jpg")  # Make sure this file exists
     image = image.transpose(Image.FLIP_TOP_BOTTOM)
 
     # Convert image to bytes

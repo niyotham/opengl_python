@@ -1,94 +1,35 @@
 import pygame
-from pygame.locals import *
-from OpenGL.GL import *
-from OpenGL.GLU import *
 
-def draw_cube():
-    glBegin(GL_QUADS)
-    # front (red)
-    glColor3f(1,0,0)
-    glVertex3f(-1,-1, 1)
-    glVertex3f( 1,-1, 1)
-    glVertex3f( 1, 1, 1)
-    glVertex3f(-1, 1, 1)
-    # back (green)
-    glColor3f(0,1,0)
-    glVertex3f(-1,-1,-1)
-    glVertex3f(-1, 1,-1)
-    glVertex3f( 1, 1,-1)
-    glVertex3f( 1,-1,-1)
-    # left (blue)
-    glColor3f(0,0,1)
-    glVertex3f(-1,-1,-1)
-    glVertex3f(-1,-1, 1)
-    glVertex3f(-1, 1, 1)
-    glVertex3f(-1, 1,-1)
-    # right (yellow)
-    glColor3f(1,1,0)
-    glVertex3f(1,-1,-1)
-    glVertex3f(1, 1,-1)
-    glVertex3f(1, 1, 1)
-    glVertex3f(1,-1, 1)
-    # top (magenta)
-    glColor3f(1,0,1)
-    glVertex3f(-1,1,-1)
-    glVertex3f(-1,1, 1)
-    glVertex3f( 1,1, 1)
-    glVertex3f( 1,1,-1)
-    # bottom (cyan)
-    glColor3f(0,1,1)
-    glVertex3f(-1,-1,-1)
-    glVertex3f( 1,-1,-1)
-    glVertex3f( 1,-1, 1)
-    glVertex3f(-1,-1, 1)
-    glEnd()
+# Initialize and create a world surface larger than the display
+pygame.init()
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600
+WORLD_WIDTH, WORLD_HEIGHT = 1600, 1200
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+world_surf = pygame.Surface((WORLD_WIDTH, WORLD_HEIGHT))
+# ... (Fill world_surf with background/objects)
 
-def main():
-    pygame.init()
-    display = (800,600)
+# Camera state
+camera_pos = pygame.Vector2(0, 0)
+player = pygame.Rect(WORLD_WIDTH//2, WORLD_HEIGHT//2, 32, 32)
+speed = 5
 
-    # REQUEST 24-BIT DEPTH BUFFER
-    pygame.display.gl_set_attribute(pygame.GL_DEPTH_SIZE, 24)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+running = True
+while running:
+    # 1. Update (Player moves in World Space)
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w]: player.y -= speed
+    # ... (other directions)
+    
+    # 2. Update Camera (Follow player, center-screen)
+    camera_pos.x = player.centerx - SCREEN_WIDTH // 2
+    camera_pos.y = player.centery - SCREEN_HEIGHT // 2
+    # Clamp camera to boundaries
+    camera_pos.x = max(0, min(camera_pos.x, WORLD_WIDTH - SCREEN_WIDTH))
+    camera_pos.y = max(0, min(camera_pos.y, WORLD_HEIGHT - SCREEN_HEIGHT))
 
-    gluPerspective(45, display[0]/display[1], 0.1, 50.0)
-    glEnable(GL_DEPTH_TEST)
-    glClearColor(0.5,0.7,1.0,1.0)
-
-    # Camera initial position
-    cam_x, cam_y, cam_z = 0,0,10
-
-    clock = pygame.time.Clock()
-    running = True
-    while running:
-        dt = clock.tick(60)/1000
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                running = False
-
-        # Simple WASD movement
-        keys = pygame.key.get_pressed()
-        speed = 5*dt
-        if keys[pygame.K_w]: cam_z -= speed
-        if keys[pygame.K_s]: cam_z += speed
-        if keys[pygame.K_a]: cam_x -= speed
-        if keys[pygame.K_d]: cam_x += speed
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        glLoadIdentity()
-        glTranslatef(-cam_x, -cam_y, -cam_z)
-
-        # Draw cubes at fixed positions
-        positions = [(0,0,0),(3,0,-3),(-3,0,-3)]
-        for pos in positions:
-            glPushMatrix()
-            glTranslatef(*pos)
-            draw_cube()
-            glPopMatrix()
-
-        pygame.display.flip()
-
-    pygame.quit()
-
-if __name__ == "__main__":
-    main()
+    # 3. Draw (Offset everything by -camera_pos)
+    screen.fill((0, 0, 0))
+    screen.blit(world_surf, (-camera_pos.x, -camera_pos.y))
+    # Draw player (player rect is in world space, sub camera_pos)
+    pygame.draw.rect(screen, (0, 255, 0), player.move(-camera_pos.x, -camera_pos.y))
+    pygame.display.flip()
